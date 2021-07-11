@@ -317,6 +317,10 @@ attributes::SceneAttributes::ptr MetadataMediator::getSceneAttributesByName(
                "that references this stage.";
         // create and register stage
         auto stageAttributes = dsStageAttrMgr->createObject(sceneName, true);
+        ESP_CHECK(stageAttributes != nullptr,
+                  "Unable to create stage attributes for stage '"
+                      << Mn::Debug::nospace << sceneName << Mn::Debug::nospace
+                      << "'. Likely invalid stage name.");
         // create a new SceneAttributes, and give it a
         // SceneObjectInstanceAttributes for the stage with the same name.
         sceneAttributes = makeSceneAndReferenceStage(

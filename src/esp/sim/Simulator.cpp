@@ -197,6 +197,10 @@ Simulator::setSceneInstanceAttributes(const std::string& activeSceneName) {
 
   metadata::attributes::SceneAttributes::cptr curSceneInstanceAttributes =
       metadataMediator_->getSceneAttributesByName(activeSceneName);
+  ESP_CHECK(curSceneInstanceAttributes != nullptr,
+            "Unable to load scene instance attributes for scene '"
+                << Mn::Debug::nospace << activeSceneName << Mn::Debug::nospace
+                << "'. Likely an invalid scene name.");
 
   // 1. Load navmesh specified in current scene instance attributes.
 
