@@ -69,7 +69,6 @@ class LoggingSubsystemTracker {
   constexpr static const char* LOGGING_ENV_VAR_NAME = "HABITAT_SIM_LOG";
   constexpr static LoggingLevel DEFAULT_LEVEL = LoggingLevel::verbose;
 
-  CORRADE_THREAD_LOCAL static LoggingSubsystemTracker* instance;
   /**
    * @brief Retrieves the global (or thread_local) instance of this class.
    *
@@ -102,6 +101,7 @@ class LoggingSubsystemTracker {
   LoggingLevel levelFor(Subsystem subsystem) const;
 
  private:
+  CORRADE_THREAD_LOCAL static LoggingSubsystemTracker* instance;
   LoggingSubsystemTracker();
 
   Corrade::Containers::Array<LoggingLevel> loggingLevels_;
