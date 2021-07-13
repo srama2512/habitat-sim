@@ -17,10 +17,11 @@ namespace esp {
 namespace logging {
 
 Subsystem subsystemFromName(const Corrade::Containers::StringView name) {
-  const Cr::Containers::StringView lowerCaseName =
+  const Cr::Containers::String lowerCaseName =
       Cr::Utility::String::lowercase(name);
-#define _c(SubsysName)              \
-  if (lowerCaseName == #SubsysName) \
+#define _c(SubsysName)                                                         \
+  if (lowerCaseName ==                                                         \
+      Cr::Utility::String::lowercase(Cr::Containers::StringView{#SubsysName})) \
   return Subsystem::SubsysName
 
   _c(Gfx);
@@ -38,10 +39,11 @@ Subsystem subsystemFromName(const Corrade::Containers::StringView name) {
 }
 
 LoggingLevel levelFromName(const Corrade::Containers::StringView name) {
-  const Cr::Containers::StringView lowerCaseName =
+  const Cr::Containers::String lowerCaseName =
       Cr::Utility::String::lowercase(name);
-#define _c(LevelName)              \
-  if (lowerCaseName == #LevelName) \
+#define _c(LevelName)                                                         \
+  if (lowerCaseName ==                                                        \
+      Cr::Utility::String::lowercase(Cr::Containers::StringView{#LevelName})) \
   return LoggingLevel::LevelName
 
   _c(verbose);

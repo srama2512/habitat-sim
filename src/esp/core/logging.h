@@ -85,7 +85,7 @@ class LoggingSubsystemTracker {
    *
    * This environment string has a fairly simple grammar that is as follows
    *
-   *    ConfigurationString: SetLevelCommand (SEMICOLON SetLevelCommand)*
+   *    FilterString: SetLevelCommand (SEMICOLON SetLevelCommand)*
    *    SetLevelCommand: (SUBSYSTEM (COMMA SUBSYSTEM)* EQUALS)? LOGGING_LEVEL
    *
    * where SUBSYSTEM is a known logging subsystem and LOGGING_LEVEL is one of
