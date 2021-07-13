@@ -503,8 +503,8 @@ class PhysicsManager : public std::enable_shared_from_this<PhysicsManager> {
       CORRADE_UNUSED float massScale = 1.0,
       CORRADE_UNUSED bool forceReload = false,
       CORRADE_UNUSED const std::string& lightSetup = DEFAULT_LIGHTING_KEY) {
-    Magnum::Debug{} << "addArticulatedObjectFromURDF not implemented in base "
-                       "PhysicsManager.";
+    ESP_DEBUG() << "addArticulatedObjectFromURDF not implemented in base "
+                   "PhysicsManager.";
     return ID_UNDEFINED;
   }
 
@@ -538,8 +538,8 @@ class PhysicsManager : public std::enable_shared_from_this<PhysicsManager> {
       CORRADE_UNUSED float massScale = 1.0,
       CORRADE_UNUSED bool forceReload = false,
       CORRADE_UNUSED const std::string& lightSetup = DEFAULT_LIGHTING_KEY) {
-    Magnum::Debug{} << "addArticulatedObjectFromURDF not implemented in base "
-                       "PhysicsManager.";
+    ESP_DEBUG() << "addArticulatedObjectFromURDF not implemented in base "
+                   "PhysicsManager.";
     return ID_UNDEFINED;
   }
 

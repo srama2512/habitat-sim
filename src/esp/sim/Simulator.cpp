@@ -51,7 +51,7 @@ Simulator::Simulator(const SimulatorConfiguration& cfg,
 }
 
 Simulator::~Simulator() {
-  LOG(INFO) << "Deconstructing Simulator";
+  ESP_DEBUG() << "Deconstructing Simulator";
   close(true);
 }
 
@@ -138,8 +138,8 @@ void Simulator::reconfigure(const SimulatorConfiguration& cfg) {
         "requiresTextures was changed to True from False.  Must call close() "
         "before changing this value.");
   } else if ((*requiresTextures_) && !config_.requiresTextures) {
-    LOG(WARNING) << "Not changing requiresTextures as the simulator was "
-                    "initialized with True.  Call close() to change this.";
+    ESP_WARNING() << "Not changing requiresTextures as the simulator was "
+                     "initialized with True.  Call close() to change this.";
   }
 
   bool success = false;
@@ -179,10 +179,11 @@ void Simulator::reconfigure(const SimulatorConfiguration& cfg) {
   // (re) create scene instance
   success = createSceneInstance(config_.activeSceneName);
 
-  LOG(INFO) << "Simulator::reconfigure() : createSceneInstance success == "
-            << (success ? "true" : "false")
-            << " for active scene name : " << config_.activeSceneName
-            << (config_.createRenderer ? " with" : " without") << " renderer.";
+  ESP_DEBUG() << "Simulator::reconfigure() : createSceneInstance success == "
+              << (success ? "true" : "false")
+              << " for active scene name : " << config_.activeSceneName
+              << (config_.createRenderer ? " with" : " without")
+              << " renderer.";
 
 }  // Simulator::reconfigure
 
@@ -207,22 +208,22 @@ Simulator::setSceneInstanceAttributes(const std::string& activeSceneName) {
   const std::string& navmeshFileLoc = metadataMediator_->getNavmeshPathByHandle(
       curSceneInstanceAttributes->getNavmeshHandle());
 
-  LOG(INFO) << "::setSceneInstanceAttributes : Navmesh file location in "
-               "scene instance : "
-            << navmeshFileLoc;
+  ESP_DEBUG() << "::setSceneInstanceAttributes : Navmesh file location in "
+                 "scene instance : "
+              << navmeshFileLoc;
   // Get name of navmesh and use to create pathfinder and load navmesh
   // create pathfinder and load navmesh if available
   pathfinder_ = nav::PathFinder::create();
   if (FileUtil::exists(navmeshFileLoc)) {
-    LOG(INFO) << "::setSceneInstanceAttributes : Loading navmesh from "
-              << navmeshFileLoc;
+    ESP_DEBUG() << "::setSceneInstanceAttributes : Loading navmesh from "
+                << navmeshFileLoc;
     bool pfSuccess = pathfinder_->loadNavMesh(navmeshFileLoc);
-    LOG(INFO) << "::setSceneInstanceAttributes : "
-              << (pfSuccess ? "Navmesh Loaded." : "Navmesh load error.");
+    ESP_DEBUG() << "::setSceneInstanceAttributes : "
+                << (pfSuccess ? "Navmesh Loaded." : "Navmesh load error.");
   } else {
-    LOG(WARNING) << "::setSceneInstanceAttributes : Navmesh file not found, "
-                    "checked at filename : '"
-                 << navmeshFileLoc << "'";
+    ESP_DEBUG() << "::setSceneInstanceAttributes : Navmesh file not found, "
+                   "checked at filename : '"
+                << navmeshFileLoc << "'";
   }
   // Calling to seeding needs to be done after the pathfinder creation but
   // before anything else.
@@ -252,10 +253,10 @@ Simulator::setSceneInstanceAttributes(const std::string& activeSceneName) {
     // semantic scene descriptor might not exist, so
     semanticScene_ = nullptr;
     semanticScene_ = scene::SemanticScene::create();
-    LOG(INFO) << "::setSceneInstanceAttributes : SceneInstance : "
-              << activeSceneName
-              << " proposed Semantic Scene Descriptor filename : "
-              << semanticSceneDescFilename;
+    ESP_DEBUG() << "::setSceneInstanceAttributes : SceneInstance : "
+                << activeSceneName
+                << " proposed Semantic Scene Descriptor filename : "
+                << semanticSceneDescFilename;
 
     // Attempt to load semantic scene descriptor specified in scene instance
     // file, agnostic to file type inferred by name,
@@ -270,16 +271,16 @@ Simulator::setSceneInstanceAttributes(const std::string& activeSceneName) {
       if (FileUtil::exists(tmpFName)) {
         success =
             scene::SemanticScene::loadReplicaHouse(tmpFName, *semanticScene_);
-        LOG(INFO) << msgPrefix
-                  << "Replica w/existing constructed file : " << tmpFName
-                  << " in directory with " << semanticSceneDescFilename << " : "
-                  << (success ? "" : "not ") << "successful";
+        ESP_DEBUG() << msgPrefix
+                    << "Replica w/existing constructed file : " << tmpFName
+                    << " in directory with " << semanticSceneDescFilename
+                    << " : " << (success ? "" : "not ") << "successful";
       }
     }  // if given SSD file name specifiedd exists
-    LOG(WARNING) << "::setSceneInstanceAttributes : All attempts to load "
-                    "SSD with SceneAttributes-provided name "
-                 << semanticSceneDescFilename << " : exist : " << fileExists
-                 << " : loaded as expected type : " << success;
+    ESP_WARNING() << "::setSceneInstanceAttributes : All attempts to load "
+                     "SSD with SceneAttributes-provided name "
+                  << semanticSceneDescFilename << " : exist : " << fileExists
+                  << " : loaded as expected type : " << success;
 
   }  // if semantic scene descriptor specified in scene instance
 
@@ -319,15 +320,15 @@ bool Simulator::createSceneInstance(const std::string& activeSceneName) {
 
   if (config_.overrideSceneLightDefaults) {
     lightSetupKey = config_.sceneLightSetup;
-    LOG(INFO) << "::createSceneInstance : Using config-specified "
-                 "Light key : -"
-              << lightSetupKey << "-";
+    ESP_DEBUG() << "::createSceneInstance : Using config-specified "
+                   "Light key : -"
+                << lightSetupKey << "-";
   } else {
     lightSetupKey = metadataMediator_->getLightSetupFullHandle(
         curSceneInstanceAttributes->getLightingHandle());
-    LOG(INFO) << "::createSceneInstance : Using scene instance-specified "
-                 "Light key : -"
-              << lightSetupKey << "-";
+    ESP_DEBUG() << "::createSceneInstance : Using scene instance-specified "
+                   "Light key : -"
+                << lightSetupKey << "-";
     if (lightSetupKey != NO_LIGHT_KEY) {
       // lighting attributes corresponding to this key should exist unless it
       // is empty; if empty, the following does nothing.
@@ -383,11 +384,11 @@ bool Simulator::createSceneInstance(const std::string& activeSceneName) {
   // create a structure to manage active scene and active semantic scene ID
   // passing to and from loadStage
   std::vector<int> tempIDs{activeSceneID_, activeSemanticSceneID_};
-  LOG(INFO) << "::createSceneInstance : Start to load stage named : "
-            << stageAttributes->getHandle() << " with render asset : "
-            << stageAttributes->getRenderAssetHandle()
-            << " and collision asset : "
-            << stageAttributes->getCollisionAssetHandle();
+  ESP_DEBUG() << "::createSceneInstance : Start to load stage named : "
+              << stageAttributes->getHandle() << " with render asset : "
+              << stageAttributes->getRenderAssetHandle()
+              << " and collision asset : "
+              << stageAttributes->getCollisionAssetHandle();
 
   // Load stage
   bool loadSuccess = resourceManager_->loadStage(
@@ -401,9 +402,9 @@ bool Simulator::createSceneInstance(const std::string& activeSceneName) {
     throw std::invalid_argument("::createSceneInstance : Cannot load: " +
                                 stageAttributesHandle);
   } else {
-    LOG(INFO) << "::createSceneInstance : Successfully loaded stage "
-                 "named : "
-              << stageAttributes->getHandle();
+    ESP_DEBUG() << "::createSceneInstance : Successfully loaded stage "
+                   "named : "
+                << stageAttributes->getHandle();
   }
 
   // refresh the NavMesh visualization if necessary after loading a new
@@ -436,9 +437,9 @@ bool Simulator::createSceneInstance(const std::string& activeSceneName) {
             stageAttributesHandle == assets::EMPTY_SCENE)) {
         // TODO: programmatic generation of semantic meshes when no
         // annotations are provided.
-        LOG(WARNING) << "\n---\nSimulator::createSceneInstance : The active "
-                        "scene does not contain semantic "
-                        "annotations. \n---";
+        ESP_WARNING() << "\n---\nSimulator::createSceneInstance : The active "
+                         "scene does not contain semantic "
+                         "annotations. \n---";
       }
     }
   }  // if ID has changed - needs to be reset
@@ -799,7 +800,7 @@ bool Simulator::recomputeNavMesh(nav::PathFinder& pathfinder,
     }
   }
 
-  LOG(INFO) << "reconstruct navmesh successful";
+  ESP_DEBUG() << "reconstruct navmesh successful";
   return true;
 }
 
@@ -887,9 +888,9 @@ int Simulator::addTrajectoryObject(const std::string& trajVisName,
     return ID_UNDEFINED;
   }
   auto trajObj = getRigidObjectManager()->getObjectCopyByID(trajVisID);
-  LOG(INFO) << "::showTrajectoryVisualization : Trajectory "
-               "visualization object created with ID "
-            << trajVisID;
+  ESP_DEBUG() << "::showTrajectoryVisualization : Trajectory "
+                 "visualization object created with ID "
+              << trajVisID;
   trajObj->setMotionType(esp::physics::MotionType::KINEMATIC);
   // add to internal references of object ID and resourceDict name
   // this is for eventual asset deletion/resource freeing.

@@ -195,16 +195,16 @@ int BulletPhysicsManager::addArticulatedObjectFromURDF(
               .first)
           .first;
 
-  Magnum::Debug{} << "BulletPhysicsManager::addArticulatedObjectFromURDF: "
-                     "simpleObjectHandle : "
-                  << simpleArtObjHandle;
+  ESP_DEBUG() << "BulletPhysicsManager::addArticulatedObjectFromURDF: "
+                 "simpleObjectHandle : "
+              << simpleArtObjHandle;
 
   std::string newArtObjectHandle =
       articulatedObjectManager_->getUniqueHandleFromCandidate(
           simpleArtObjHandle);
-  Magnum::Debug{} << "BulletPhysicsManager::addArticulatedObjectFromURDF: "
-                     "newArtObjectHandle : "
-                  << newArtObjectHandle;
+  ESP_DEBUG() << "BulletPhysicsManager::addArticulatedObjectFromURDF: "
+                 "newArtObjectHandle : "
+              << newArtObjectHandle;
 
   existingArticulatedObjects_.at(articulatedObjectID)
       ->setObjectName(newArtObjectHandle);

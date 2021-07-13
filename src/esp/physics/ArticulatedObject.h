@@ -677,7 +677,7 @@ class ArticulatedObject : public esp::physics::PhysicsObjectBase {
    * See derived implementations.
    */
   virtual void clampJointLimits() {
-    Magnum::Debug{} << "No base implementation of \"clampJointLimits\". ";
+    ESP_DEBUG() << "No base implementation of \"clampJointLimits\". ";
   }
 
   //=========== Joint Motor API ===========
@@ -695,8 +695,8 @@ class ArticulatedObject : public esp::physics::PhysicsObjectBase {
   virtual int createJointMotor(
       CORRADE_UNUSED const int index,
       CORRADE_UNUSED const JointMotorSettings& settings) {
-    Magnum::Debug{} << "No base implementation of \"createJointMotor\". "
-                       "Requires a physics simulator implementation.";
+    ESP_DEBUG() << "No base implementation of \"createJointMotor\". "
+                   "Requires a physics simulator implementation.";
     return ID_UNDEFINED;
   }
 

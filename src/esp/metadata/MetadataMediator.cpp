@@ -352,7 +352,7 @@ attributes::SceneAttributes::ptr MetadataMediator::makeSceneAndReferenceStage(
   attributes::SceneAttributes::ptr sceneAttributes =
       dsSceneAttrMgr->createDefaultObject(sceneName, false);
   ESP_CHECK(sceneAttributes != nullptr,
-            "Unable to create scene attributes. Scene:" << sceneName)
+            "Unable to create scene attributes. Scene:" << sceneName);
   // create stage instance attributes and set its name (from stage attributes)
   sceneAttributes->setStageInstance(
       dsSceneAttrMgr->createEmptyInstanceAttributes(
