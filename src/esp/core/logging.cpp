@@ -83,16 +83,17 @@ void LoggingSubsystemTracker::processEnvString(
     const Cr::Containers::StringView envString) {
   std::fill(loggingLevels_.begin(), loggingLevels_.end(), DEFAULT_LEVEL);
 
-  for (const Cr::Containers::StringView sub : envString.split(';')) {
-    if (sub.contains("=")) {
-      const auto parts = sub.partition('=');
+  for (const Cr::Containers::StringView setLevelCommand :
+       envString.split(';')) {
+    if (setLevelCommand.contains("=")) {
+      const auto parts = setLevelCommand.partition('=');
       LoggingLevel lvl = levelFromName(parts[2]);
 
       for (const Cr::Containers::StringView subsystemName : parts[0].split(','))
         loggingLevels_[uint8_t(subsystemFromName(subsystemName))] = lvl;
     } else {
       std::fill(loggingLevels_.begin(), loggingLevels_.end(),
-                levelFromName(sub));
+                levelFromName(setLevelCommand));
     }
   }
 }
