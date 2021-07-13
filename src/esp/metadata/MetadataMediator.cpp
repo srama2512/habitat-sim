@@ -342,9 +342,17 @@ attributes::SceneAttributes::ptr MetadataMediator::makeSceneAndReferenceStage(
     const attributes::StageAttributes::ptr& stageAttributes,
     const managers::SceneAttributesManager::ptr& dsSceneAttrMgr,
     const std::string& sceneName) {
+  ESP_CHECK(datasetAttr != nullptr,
+            "Datasets attributes manager is null.  Scene:" << sceneName);
+  ESP_CHECK(stageAttributes != nullptr,
+            "Stage attributes is null.  Scene:" << sceneName);
+  ESP_CHECK(dsSceneAttrMgr != nullptr,
+            "Dataset scene attributes manager is null.  Scene:" << sceneName);
   // create scene attributes with passed name
   attributes::SceneAttributes::ptr sceneAttributes =
       dsSceneAttrMgr->createDefaultObject(sceneName, false);
+  ESP_CHECK(sceneAttributes != nullptr,
+            "Unable to create scene attributes. Scene:" << sceneName)
   // create stage instance attributes and set its name (from stage attributes)
   sceneAttributes->setStageInstance(
       dsSceneAttrMgr->createEmptyInstanceAttributes(
