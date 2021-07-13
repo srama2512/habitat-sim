@@ -8,6 +8,8 @@
 #include <cstdlib>
 
 #include <Corrade/Containers/StaticArray.h>
+#include <Corrade/Containers/String.h>
+#include <Corrade/Utility/String.h>
 
 namespace Cr = Corrade;
 
@@ -15,8 +17,10 @@ namespace esp {
 namespace logging {
 
 Subsystem subsystemFromName(const Corrade::Containers::StringView name) {
-#define _c(SubsysName)     \
-  if (name == #SubsysName) \
+  const Cr::Containers::StringView lowerCaseName =
+      Cr::Utility::String::lowercase(name);
+#define _c(SubsysName)              \
+  if (lowerCaseName == #SubsysName) \
   return Subsystem::SubsysName
 
   _c(Gfx);
@@ -34,14 +38,17 @@ Subsystem subsystemFromName(const Corrade::Containers::StringView name) {
 }
 
 LoggingLevel levelFromName(const Corrade::Containers::StringView name) {
-#define _c(LevelName)     \
-  if (name == #LevelName) \
+  const Cr::Containers::StringView lowerCaseName =
+      Cr::Utility::String::lowercase(name);
+#define _c(LevelName)              \
+  if (lowerCaseName == #LevelName) \
   return LoggingLevel::LevelName
 
   _c(verbose);
   _c(debug);
   _c(warning);
   _c(quiet);
+  _c(error);
 
 #undef _c
   CORRADE_ASSERT_UNREACHABLE("Unknown logging level name '"
@@ -56,6 +63,11 @@ LoggingSubsystemTracker& LoggingSubsystemTracker::Instance() {
   if (!instance)
     instance = new LoggingSubsystemTracker{};
   return *instance;
+}
+
+void LoggingSubsystemTracker::DeleteInstance() {
+  delete instance;
+  instance = nullptr;
 }
 
 LoggingSubsystemTracker::LoggingSubsystemTracker()

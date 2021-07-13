@@ -73,6 +73,7 @@ LoggingTest::LoggingTest() {
 void LoggingTest::envVarTest() {
   auto&& data = EnvVarTestData[testCaseInstanceId()];
 
+  LoggingSubsystemTracker::DeleteInstance();
   LoggingSubsystemTracker::Instance().processEnvString(data.envString);
 
   std::ostringstream out;
@@ -92,6 +93,7 @@ void LoggingTest::envVarTest() {
       Cr::Containers::String{out.str()}.splitWithoutEmptyParts('\n'));
 
   CORRADE_COMPARE(result, data.expected);
+  LoggingSubsystemTracker::DeleteInstance();
 }
 
 }  // namespace

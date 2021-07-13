@@ -77,6 +77,7 @@ class LoggingSubsystemTracker {
    * environment string to be set programatically
    */
   static LoggingSubsystemTracker& Instance();
+  static void DeleteInstance();
 
   /**
    * @brief Processes the environment variable string that configures the
