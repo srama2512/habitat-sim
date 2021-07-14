@@ -57,14 +57,14 @@ constexpr const struct {
   const char* expected;
 } EnvVarTestData[]{
     {nullptr,
-     "[Subsystem: Other] DebugOther\n[Subsystem: Other] WarningOther\n"
+     "[Subsystem: Default] DebugDefault\n[Subsystem: Default] WarningDefault\n"
      "[Subsystem: Sim] DebugSim\n[Subsystem: Sim] WarningSim\n[Subsystem: "
-     "Gfx]\n"
+     "Gfx] "
      "DebugGfx\n[Subsystem: Gfx] WarningGfx\n"},
     {"debug",
-     "[Subsystem: Other] DebugOther\n[Subsystem: Other] WarningOther\n"
+     "[Subsystem: Default] DebugDefault\n[Subsystem: Default] WarningDefault\n"
      "[Subsystem: Sim] DebugSim\n[Subsystem: Sim] WarningSim\n[Subsystem: "
-     "Gfx]\n"
+     "Gfx] "
      "DebugGfx\n[Subsystem: Gfx] WarningGfx\n"},
     {"quiet", ""},
     {"error", ""},
@@ -72,7 +72,7 @@ constexpr const struct {
      "[Subsystem: Sim] DebugSim\n[Subsystem: Sim] WarningSim\n[Subsystem: Gfx] "
      "DebugGfx\n[Subsystem: Gfx] WarningGfx\n"},
     {"warning:Gfx=debug",
-     "[Subsystem: Other] WarningOther\n"
+     "[Subsystem: Default] WarningDefault\n"
      "[Subsystem: Sim] WarningSim\n[Subsystem: Gfx] "
      "DebugGfx\n[Subsystem: Gfx] WarningGfx\n"},
 };  // namespace
@@ -91,8 +91,8 @@ void LoggingTest::envVarTest() {
   Cr::Utility::Debug debugCapture{&out};
   Cr::Utility::Warning warnCapture{&out};
 
-  ESP_DEBUG() << "DebugOther";
-  ESP_WARNING() << "WarningOther";
+  ESP_DEBUG() << "DebugDefault";
+  ESP_WARNING() << "WarningDefault";
 
   sim::test::debug("DebugSim");
   sim::test::warning("WarningSim");
@@ -100,7 +100,8 @@ void LoggingTest::envVarTest() {
   gfx::test::debug("DebugGfx");
   gfx::test::warning("WarningGfx");
 
-  CORRADE_COMPARE(out.str().data(), data.expected);
+  CORRADE_COMPARE(Cr::Containers::StringView{out.str()},
+                  Cr::Containers::StringView{data.expected});
 }
 
 }  // namespace

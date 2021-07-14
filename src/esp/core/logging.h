@@ -25,36 +25,41 @@ enum class Subsystem : uint8_t {
   physics,
   nav,
   // This is the catch all subsystem
-  Other,
+  Default,
 
   // Must always be last
   NumSubsystems,
 };
 
 constexpr const char* subsystemNames[] = {"Gfx",     "Scene", "Sim",
-                                          "Physics", "Nav",   "Other"};
+                                          "Physics", "Nav",   "Default"};
 
 Subsystem subsystemFromName(Corrade::Containers::StringView name);
 
 }  // namespace logging
+}  // namespace esp
 
 // This is the catch all for subsystems without a specialization
-inline logging::Subsystem loggingSubsystem() {
-  return logging::Subsystem::Other;
+inline esp::logging::Subsystem espLoggingSubsystem() {
+  return esp::logging::Subsystem::Default;
 }
 
-#define ADD_SUBSYSTEM_FN(subsystemName)          \
-  namespace subsystemName {                      \
-  inline logging::Subsystem loggingSubsystem() { \
-    return logging::Subsystem::subsystemName;    \
-  }                                              \
+#define ADD_SUBSYSTEM_FN(subsystemName)             \
+  namespace esp {                                   \
+  namespace subsystemName {                         \
+  inline logging::Subsystem espLoggingSubsystem() { \
+    return logging::Subsystem::subsystemName;       \
+  }                                                 \
+  }                                                 \
   }
 
 ADD_SUBSYSTEM_FN(gfx);
 ADD_SUBSYSTEM_FN(scene);
 ADD_SUBSYSTEM_FN(sim);
 ADD_SUBSYSTEM_FN(physics);
+ADD_SUBSYSTEM_FN(nav);
 
+namespace esp {
 namespace logging {
 
 enum class LoggingLevel : uint8_t {
@@ -121,9 +126,9 @@ Corrade::Utility::Error errorOutputFor(Subsystem subsystem);
 }  // namespace logging
 }  // namespace esp
 
-#define ESP_DEBUG() esp::logging::debugOutputFor(loggingSubsystem())
-#define ESP_WARNING() esp::logging::warningOutputFor(loggingSubsystem())
-#define ESP_ERROR() esp::logging::errorOutputFor(loggingSubsystem())
+#define ESP_DEBUG() esp::logging::debugOutputFor(espLoggingSubsystem())
+#define ESP_WARNING() esp::logging::warningOutputFor(espLoggingSubsystem())
+#define ESP_ERROR() esp::logging::errorOutputFor(espLoggingSubsystem())
 
 #if defined(ESP_BUILD_GLOG_SHIM)
 

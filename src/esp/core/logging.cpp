@@ -74,10 +74,11 @@ LoggingContext* currentLoggingContext = nullptr;
 bool LoggingContext::hasCurrent() {
   return currentLoggingContext;
 }
+
 LoggingContext& LoggingContext::current() {
   ESP_CHECK(
       currentLoggingContext,
-      "LoggingContext::current() no current logging context.  Either "
+      "esp::logging::LoggingContext: No current logging context.  Either "
       "initialize an instance of the simulator or create a logging context");
 
   return *currentLoggingContext;
