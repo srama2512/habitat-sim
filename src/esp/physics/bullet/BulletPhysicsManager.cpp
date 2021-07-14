@@ -195,15 +195,15 @@ int BulletPhysicsManager::addArticulatedObjectFromURDF(
               .first)
           .first;
 
-  ESP_DEBUG() << "BulletPhysicsManager::addArticulatedObjectFromURDF: "
-                 "simpleObjectHandle : "
+  ESP_DEBUG() << "BulletPhysicsManager::addArticulatedObjectFromURDF:"
+                 "simpleObjectHandle :"
               << simpleArtObjHandle;
 
   std::string newArtObjectHandle =
       articulatedObjectManager_->getUniqueHandleFromCandidate(
           simpleArtObjHandle);
-  ESP_DEBUG() << "BulletPhysicsManager::addArticulatedObjectFromURDF: "
-                 "newArtObjectHandle : "
+  ESP_DEBUG() << "BulletPhysicsManager::addArticulatedObjectFromURDF:"
+                 "newArtObjectHandle :"
               << newArtObjectHandle;
 
   existingArticulatedObjects_.at(articulatedObjectID)
