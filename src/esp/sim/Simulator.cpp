@@ -183,10 +183,8 @@ void Simulator::reconfigure(const SimulatorConfiguration& cfg) {
   success = createSceneInstance(config_.activeSceneName);
 
   ESP_DEBUG() << "Simulator::reconfigure() : createSceneInstance success =="
-              << success
-              << "for active scene name :" << config_.activeSceneName
-              << (config_.createRenderer ? " with" : " without")
-              << "renderer.";
+              << success << "for active scene name :" << config_.activeSceneName
+              << (config_.createRenderer ? " with" : " without") << "renderer.";
 
 }  // Simulator::reconfigure
 
@@ -225,8 +223,9 @@ Simulator::setSceneInstanceAttributes(const std::string& activeSceneName) {
                 << (pfSuccess ? "Navmesh Loaded." : "Navmesh load error.");
   } else {
     ESP_DEBUG() << "::setSceneInstanceAttributes : Navmesh file not found, "
-                   "checked at filename : '" << Mn::Debug::nospace
-                << navmeshFileLoc << Mn::Debug::nospace << "'";
+                   "checked at filename : '"
+                << Mn::Debug::nospace << navmeshFileLoc << Mn::Debug::nospace
+                << "'";
   }
   // Calling to seeding needs to be done after the pathfinder creation but
   // before anything else.
@@ -276,8 +275,8 @@ Simulator::setSceneInstanceAttributes(const std::string& activeSceneName) {
             scene::SemanticScene::loadReplicaHouse(tmpFName, *semanticScene_);
         ESP_DEBUG() << msgPrefix
                     << "Replica w/existing constructed file :" << tmpFName
-                    << "in directory with" << semanticSceneDescFilename
-                    << ":" << (success ? "successful" : "not successful");
+                    << "in directory with" << semanticSceneDescFilename << ":"
+                    << (success ? "successful" : "not successful");
       }
     }  // if given SSD file name specifiedd exists
     ESP_WARNING() << "::setSceneInstanceAttributes : All attempts to load "
@@ -324,14 +323,16 @@ bool Simulator::createSceneInstance(const std::string& activeSceneName) {
   if (config_.overrideSceneLightDefaults) {
     lightSetupKey = config_.sceneLightSetup;
     ESP_DEBUG() << "::createSceneInstance : Using config-specified "
-                   "Light key : -" << Mn::Debug::nospace
-                << lightSetupKey << Mn::Debug::nospace << "-";
+                   "Light key : -"
+                << Mn::Debug::nospace << lightSetupKey << Mn::Debug::nospace
+                << "-";
   } else {
     lightSetupKey = metadataMediator_->getLightSetupFullHandle(
         curSceneInstanceAttributes->getLightingHandle());
     ESP_DEBUG() << "::createSceneInstance : Using scene instance-specified "
-                   "Light key : -" << Mn::Debug::nospace
-                << lightSetupKey << Mn::Debug::nospace << "-";
+                   "Light key : -"
+                << Mn::Debug::nospace << lightSetupKey << Mn::Debug::nospace
+                << "-";
     if (lightSetupKey != NO_LIGHT_KEY) {
       // lighting attributes corresponding to this key should exist unless it
       // is empty; if empty, the following does nothing.

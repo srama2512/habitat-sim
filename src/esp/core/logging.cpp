@@ -12,7 +12,7 @@
 #include <Corrade/Containers/String.h>
 
 namespace Cr = Corrade;
-using namespace Cr::Containers::Literals;
+using Cr::Containers::Literals::operator""_s;
 
 namespace esp {
 namespace logging {
@@ -34,17 +34,17 @@ Subsystem subsystemFromName(const Corrade::Containers::StringView name) {
 LoggingLevel levelFromName(const Corrade::Containers::StringView name) {
   const Cr::Containers::String lowerCaseName =
       Cr::Utility::String::lowercase(name);
-#define _c(level, name)           \
+#define CASE(level, name)         \
   if (lowerCaseName == #name##_s) \
   return LoggingLevel::level
 
-  _c(Verbose, verbose);
-  _c(Debug, debug);
-  _c(Warning, warning);
-  _c(Quiet, quiet);
-  _c(Error, error);
+  CASE(Verbose, verbose);
+  CASE(Debug, debug);
+  CASE(Warning, warning);
+  CASE(Quiet, quiet);
+  CASE(Error, error);
 
-#undef _c
+#undef CASE
   CORRADE_ASSERT_UNREACHABLE("Unknown logging level name '"
                                  << Cr::Utility::Debug::nospace << name
                                  << Cr::Utility::Debug::nospace << "'",
@@ -72,7 +72,7 @@ LoggingContext* currentLoggingContext = nullptr;
 }  // namespace
 
 bool LoggingContext::hasCurrent() {
-  return currentLoggingContext;
+  return currentLoggingContext != nullptr;
 }
 
 LoggingContext& LoggingContext::current() {

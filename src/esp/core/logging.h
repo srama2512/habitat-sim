@@ -79,8 +79,20 @@ class LoggingContext {
   constexpr static const char* LOGGING_ENV_VAR_NAME = "HABITAT_SIM_LOG";
   constexpr static LoggingLevel DEFAULT_LEVEL = LoggingLevel::Verbose;
 
+  /**
+   * @brief Convenience constructor that grabs the configuration string from the
+   * environment variable and calls @ref
+   * LoggingContext(Corrade::Containers::StringView)
+   */
   LoggingContext();
-  LoggingContext(Corrade::Containers::StringView envString);
+
+  /**
+   * @brief Constructor
+   *
+   * @param[in] envString Configuration string. See @ref processEnvString for
+   * details
+   */
+  explicit LoggingContext(Corrade::Containers::StringView envString);
 
   ~LoggingContext();
 
