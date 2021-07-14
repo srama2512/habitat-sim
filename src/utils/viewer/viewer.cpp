@@ -412,6 +412,8 @@ Key Commands:
    */
   void setSceneInstanceFromListAndShow(int nextSceneInstanceIDX);
 
+  esp::logging::LoggingContext loggingContext_;
+
   // The MetadataMediator can exist independent of simulator
   // and provides access to all managers for currently active scene dataset
   std::shared_ptr<esp::metadata::MetadataMediator> MM_;
@@ -604,6 +606,7 @@ Viewer::Viewer(const Arguments& arguments)
                                     .setColorBufferSize(
                                         Mn::Vector4i(8, 8, 8, 8))
                                     .setSampleCount(4)},
+      loggingContext_(),
       simConfig_(),
       MM_(std::make_shared<esp::metadata::MetadataMediator>(simConfig_)),
       curSceneInstances_{} {

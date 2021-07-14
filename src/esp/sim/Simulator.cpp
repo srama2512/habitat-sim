@@ -84,6 +84,7 @@ void Simulator::close(const bool destroy) {
   if (destroy || !renderer_->wasBackgroundRendererInitialized()) {
     renderer_ = nullptr;
     context_ = nullptr;
+    loggingContext_ = nullptr;
   }
 
   activeSceneID_ = ID_UNDEFINED;
@@ -95,6 +96,8 @@ void Simulator::close(const bool destroy) {
 }
 
 void Simulator::reconfigure(const SimulatorConfiguration& cfg) {
+  if (!loggingContext_)
+    loggingContext_ = std::make_unique<logging::LoggingContext>();
   // set metadata mediator's cfg  upon creation or reconfigure
   if (!metadataMediator_) {
     metadataMediator_ = metadata::MetadataMediator::create(cfg);

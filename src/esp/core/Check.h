@@ -63,16 +63,15 @@ extern void (*throwInPython)(const char*);
 
 /* A runtime check that must pass, otherwise we consider this a fatal runtime
 error. The program terminates with the supplied error message. */
-#define ESP_CHECK(condition, ...)                                            \
-  do {                                                                       \
-    if (!(condition)) {                                                      \
-      std::ostringstream out;                                                \
-      Corrade::Utility::Debug{                                               \
-          &out, Corrade::Utility::Debug::Flag::NoNewlineAtTheEnd}            \
-          << "ESP_CHECK(" << Corrade::Utility::Debug::nospace << #condition  \
-          << Corrade::Utility::Debug::nospace << ") failed:" << __VA_ARGS__; \
-      esp::core::throwIfInPythonOtherwiseAbort(out.str().data());            \
-    }                                                                        \
+#define ESP_CHECK(condition, ...)                                 \
+  do {                                                            \
+    if (!(condition)) {                                           \
+      std::ostringstream out;                                     \
+      Corrade::Utility::Debug{                                    \
+          &out, Corrade::Utility::Debug::Flag::NoNewlineAtTheEnd} \
+          << "ESP_CHECK failed:" << __VA_ARGS__;                  \
+      esp::core::throwIfInPythonOtherwiseAbort(out.str().data()); \
+    }                                                             \
   } while (false)
 
 #endif

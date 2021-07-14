@@ -3,15 +3,16 @@
 // LICENSE file in the root directory of this source tree.
 
 #include "logging.h"
+#include "Check.h"
 
 #include <algorithm>
 #include <cstdlib>
 
 #include <Corrade/Containers/StaticArray.h>
 #include <Corrade/Containers/String.h>
-#include <Corrade/Utility/String.h>
 
 namespace Cr = Corrade;
+using namespace Cr::Containers::Literals;
 
 namespace esp {
 namespace logging {
@@ -19,18 +20,10 @@ namespace logging {
 Subsystem subsystemFromName(const Corrade::Containers::StringView name) {
   const Cr::Containers::String lowerCaseName =
       Cr::Utility::String::lowercase(name);
-#define _c(SubsysName)                                                         \
-  if (lowerCaseName ==                                                         \
-      Cr::Utility::String::lowercase(Cr::Containers::StringView{#SubsysName})) \
-  return Subsystem::SubsysName
-
-  _c(Gfx);
-  _c(Scene);
-  _c(Sim);
-  _c(Physics);
-  _c(Other);
-
-#undef _c
+  for (uint8_t i = 0; i < uint8_t(Subsystem::NumSubsystems); ++i)
+    if (lowerCaseName == Cr::Utility::String::lowercase(
+                             Cr::Containers::StringView{subsystemNames[i]}))
+      return Subsystem(i);
 
   CORRADE_ASSERT_UNREACHABLE("Unknown subsystem '"
                                  << Cr::Utility::Debug::nospace << name
@@ -41,16 +34,15 @@ Subsystem subsystemFromName(const Corrade::Containers::StringView name) {
 LoggingLevel levelFromName(const Corrade::Containers::StringView name) {
   const Cr::Containers::String lowerCaseName =
       Cr::Utility::String::lowercase(name);
-#define _c(LevelName)                                                         \
-  if (lowerCaseName ==                                                        \
-      Cr::Utility::String::lowercase(Cr::Containers::StringView{#LevelName})) \
-  return LoggingLevel::LevelName
+#define _c(level, name)           \
+  if (lowerCaseName == #name##_s) \
+  return LoggingLevel::level
 
-  _c(verbose);
-  _c(debug);
-  _c(warning);
-  _c(quiet);
-  _c(error);
+  _c(Verbose, verbose);
+  _c(Debug, debug);
+  _c(Warning, warning);
+  _c(Quiet, quiet);
+  _c(Error, error);
 
 #undef _c
   CORRADE_ASSERT_UNREACHABLE("Unknown logging level name '"
@@ -59,32 +51,57 @@ LoggingLevel levelFromName(const Corrade::Containers::StringView name) {
                              {});
 }
 
-CORRADE_THREAD_LOCAL LoggingSubsystemTracker*
-    LoggingSubsystemTracker::instance = nullptr;
-LoggingSubsystemTracker& LoggingSubsystemTracker::Instance() {
-  if (!instance)
-    instance = new LoggingSubsystemTracker{};
-  return *instance;
+namespace {
+#ifdef CORRADE_BUILD_MULTITHREADED
+CORRADE_THREAD_LOCAL
+#endif
+#if defined(MAGNUM_BUILD_STATIC_UNIQUE_GLOBALS) && \
+    !defined(CORRADE_TARGET_WINDOWS)
+/* On static builds that get linked to multiple shared libraries and then used
+   in a single app we want to ensure there's just one global symbol. On Linux
+   it's apparently enough to just export, macOS needs the weak attribute.
+   Windows handled differently below. */
+CORRADE_VISIBILITY_EXPORT
+#ifdef __GNUC__
+__attribute__((weak))
+#else
+/* uh oh? the test will fail, probably */
+#endif
+#endif
+LoggingContext* currentLoggingContext = nullptr;
+}  // namespace
+
+bool LoggingContext::hasCurrent() {
+  return currentLoggingContext;
+}
+LoggingContext& LoggingContext::current() {
+  ESP_CHECK(
+      currentLoggingContext,
+      "LoggingContext::current() no current logging context.  Either "
+      "initialize an instance of the simulator or create a logging context");
+
+  return *currentLoggingContext;
 }
 
-void LoggingSubsystemTracker::DeleteInstance() {
-  delete instance;
-  instance = nullptr;
+LoggingContext::LoggingContext(Corrade::Containers::StringView envString)
+    : loggingLevels_{Cr::DirectInit, uint8_t(Subsystem::NumSubsystems),
+                     DEFAULT_LEVEL},
+      prevContext_{currentLoggingContext} {
+  currentLoggingContext = this;
+  processEnvString(envString);
 }
 
-LoggingSubsystemTracker::LoggingSubsystemTracker()
-    : loggingLevels_{Cr::NoInit, uint8_t(Subsystem::NumSubsystems)} {
-  std::fill(loggingLevels_.begin(), loggingLevels_.end(), DEFAULT_LEVEL);
-  if (const char* envVar = std::getenv(LOGGING_ENV_VAR_NAME))
-    processEnvString(Cr::Containers::StringView{envVar});
+LoggingContext::LoggingContext()
+    : LoggingContext{std::getenv(LOGGING_ENV_VAR_NAME)} {}
+
+LoggingContext::~LoggingContext() {
+  currentLoggingContext = prevContext_;
 }
 
-void LoggingSubsystemTracker::processEnvString(
+void LoggingContext::processEnvString(
     const Cr::Containers::StringView envString) {
-  std::fill(loggingLevels_.begin(), loggingLevels_.end(), DEFAULT_LEVEL);
-
   for (const Cr::Containers::StringView setLevelCommand :
-       envString.split(';')) {
+       envString.split(':')) {
     if (setLevelCommand.contains("=")) {
       const auto parts = setLevelCommand.partition('=');
       LoggingLevel lvl = levelFromName(parts[2]);
@@ -98,30 +115,33 @@ void LoggingSubsystemTracker::processEnvString(
   }
 }
 
-LoggingLevel LoggingSubsystemTracker::levelFor(Subsystem subsystem) const {
+LoggingLevel LoggingContext::levelFor(Subsystem subsystem) const {
   return loggingLevels_[uint8_t(subsystem)];
 }
 
 namespace {
 template <class Logger>
 Logger outputForImpl(Subsystem subsystem, LoggingLevel level) {
-  if (level >= LoggingSubsystemTracker::Instance().levelFor(subsystem))
-    return Logger{Logger::output()};
-  else
+  if (level >= LoggingContext::current().levelFor(subsystem)) {
+    Logger logger{Logger::output()};
+    logger << "[Subsystem:" << subsystemNames[uint8_t(subsystem)]
+           << Logger::nospace << "]";
+    return logger;
+  } else
     return Logger{nullptr};
 }
 }  // namespace
 
 Cr::Utility::Debug debugOutputFor(Subsystem subsystem) {
-  return outputForImpl<Cr::Utility::Debug>(subsystem, LoggingLevel::debug);
+  return outputForImpl<Cr::Utility::Debug>(subsystem, LoggingLevel::Debug);
 }
 
 Cr::Utility::Warning warningOutputFor(Subsystem subsystem) {
-  return outputForImpl<Cr::Utility::Warning>(subsystem, LoggingLevel::warning);
+  return outputForImpl<Cr::Utility::Warning>(subsystem, LoggingLevel::Warning);
 }
 
 Cr::Utility::Error errorOutputFor(Subsystem subsystem) {
-  return outputForImpl<Cr::Utility::Error>(subsystem, LoggingLevel::error);
+  return outputForImpl<Cr::Utility::Error>(subsystem, LoggingLevel::Error);
 }
 
 }  // namespace logging

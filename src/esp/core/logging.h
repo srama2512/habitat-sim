@@ -10,6 +10,7 @@
 #include <Corrade/Containers/Array.h>
 #include <Corrade/Containers/StringView.h>
 #include <Corrade/Utility/Debug.h>
+#include <Corrade/Utility/String.h>
 
 namespace esp {
 namespace logging {
@@ -18,16 +19,20 @@ namespace logging {
 // to add an appropriate loggingSubsystem function (see the ADD_SUBSYSTEM_FN
 // helper bellow) and add it to @ref subsystemFromName()
 enum class Subsystem : uint8_t {
-  Gfx,
-  Scene,
-  Sim,
-  Physics,
+  gfx,
+  scene,
+  sim,
+  physics,
+  nav,
   // This is the catch all subsystem
   Other,
 
   // Must always be last
   NumSubsystems,
 };
+
+constexpr const char* subsystemNames[] = {"Gfx",     "Scene", "Sim",
+                                          "Physics", "Nav",   "Other"};
 
 Subsystem subsystemFromName(Corrade::Containers::StringView name);
 
@@ -38,45 +43,46 @@ inline logging::Subsystem loggingSubsystem() {
   return logging::Subsystem::Other;
 }
 
-#define ADD_SUBSYSTEM_FN(subsystemNamespace, subsystemName) \
-  namespace subsystemNamespace {                            \
-  inline logging::Subsystem loggingSubsystem() {            \
-    return logging::Subsystem::subsystemName;               \
-  }                                                         \
+#define ADD_SUBSYSTEM_FN(subsystemName)          \
+  namespace subsystemName {                      \
+  inline logging::Subsystem loggingSubsystem() { \
+    return logging::Subsystem::subsystemName;    \
+  }                                              \
   }
 
-ADD_SUBSYSTEM_FN(gfx, Gfx);
-ADD_SUBSYSTEM_FN(scene, Scene);
-ADD_SUBSYSTEM_FN(sim, Sim);
-ADD_SUBSYSTEM_FN(physics, Physics);
+ADD_SUBSYSTEM_FN(gfx);
+ADD_SUBSYSTEM_FN(scene);
+ADD_SUBSYSTEM_FN(sim);
+ADD_SUBSYSTEM_FN(physics);
 
 namespace logging {
 
 enum class LoggingLevel : uint8_t {
   // Always first
-  verbose,
-  debug,
-  warning,
+  Verbose,
+  Debug,
+  Warning,
   // Quiet mode disables debug and warning
-  quiet,
-  error,
+  Quiet,
+  Error,
 };
 
 LoggingLevel levelFromName(Corrade::Containers::StringView name);
 
-class LoggingSubsystemTracker {
+class LoggingContext {
  public:
   constexpr static const char* LOGGING_ENV_VAR_NAME = "HABITAT_SIM_LOG";
-  constexpr static LoggingLevel DEFAULT_LEVEL = LoggingLevel::verbose;
+  constexpr static LoggingLevel DEFAULT_LEVEL = LoggingLevel::Verbose;
 
-  /**
-   * @brief Retrieves the global (or thread_local) instance of this class.
-   *
-   * The instance is initialized lazily at the first call to allow for the
-   * environment string to be set programatically
-   */
-  static LoggingSubsystemTracker& Instance();
-  static void DeleteInstance();
+  LoggingContext();
+  LoggingContext(Corrade::Containers::StringView envString);
+
+  ~LoggingContext();
+
+  LoggingContext(LoggingContext&&) = delete;
+  LoggingContext(LoggingContext&) = delete;
+  LoggingContext& operator=(LoggingContext&) = delete;
+  LoggingContext& operator=(LoggingContext&&) = delete;
 
   /**
    * @brief Processes the environment variable string that configures the
@@ -84,7 +90,7 @@ class LoggingSubsystemTracker {
    *
    * This environment string has a fairly simple grammar that is as follows
    *
-   *    FilterString: SetLevelCommand (SEMICOLON SetLevelCommand)*
+   *    FilterString: SetLevelCommand (COLON SetLevelCommand)*
    *    SetLevelCommand: (SUBSYSTEM (COMMA SUBSYSTEM)* EQUALS)? LOGGING_LEVEL
    *
    * where SUBSYSTEM is a known logging subsystem and LOGGING_LEVEL is one of
@@ -100,11 +106,12 @@ class LoggingSubsystemTracker {
 
   LoggingLevel levelFor(Subsystem subsystem) const;
 
- private:
-  CORRADE_THREAD_LOCAL static LoggingSubsystemTracker* instance;
-  LoggingSubsystemTracker();
+  static bool hasCurrent();
+  static LoggingContext& current();
 
+ private:
   Corrade::Containers::Array<LoggingLevel> loggingLevels_;
+  LoggingContext* prevContext_;
 };
 
 Corrade::Utility::Debug debugOutputFor(Subsystem subsystem);

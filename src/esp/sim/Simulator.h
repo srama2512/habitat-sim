@@ -1414,6 +1414,8 @@ class Simulator {
 
   void reconfigureReplayManager(bool enableGfxReplaySave);
 
+  std::unique_ptr<logging::LoggingContext> loggingContext_ = nullptr;
+
   gfx::WindowlessContext::uptr context_ = nullptr;
   std::shared_ptr<gfx::Renderer> renderer_ = nullptr;
   // CANNOT make the specification of resourceManager_ above the context_!

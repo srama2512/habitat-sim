@@ -56,14 +56,26 @@ constexpr const struct {
   const char* envString;
   const char* expected;
 } EnvVarTestData[]{
-    {"", "DebugOther WarningOther DebugSim WarningSim DebugGfx WarningGfx"},
+    {nullptr,
+     "[Subsystem: Other] DebugOther\n[Subsystem: Other] WarningOther\n"
+     "[Subsystem: Sim] DebugSim\n[Subsystem: Sim] WarningSim\n[Subsystem: "
+     "Gfx]\n"
+     "DebugGfx\n[Subsystem: Gfx] WarningGfx\n"},
     {"debug",
-     "DebugOther WarningOther DebugSim WarningSim DebugGfx WarningGfx"},
+     "[Subsystem: Other] DebugOther\n[Subsystem: Other] WarningOther\n"
+     "[Subsystem: Sim] DebugSim\n[Subsystem: Sim] WarningSim\n[Subsystem: "
+     "Gfx]\n"
+     "DebugGfx\n[Subsystem: Gfx] WarningGfx\n"},
     {"quiet", ""},
     {"error", ""},
-    {"quiet;Sim,Gfx=verbose", "DebugSim WarningSim DebugGfx WarningGfx"},
-    {"warning;Gfx=debug", "WarningOther WarningSim DebugGfx WarningGfx"},
-};
+    {"quiet:Sim,Gfx=verbose",
+     "[Subsystem: Sim] DebugSim\n[Subsystem: Sim] WarningSim\n[Subsystem: Gfx] "
+     "DebugGfx\n[Subsystem: Gfx] WarningGfx\n"},
+    {"warning:Gfx=debug",
+     "[Subsystem: Other] WarningOther\n"
+     "[Subsystem: Sim] WarningSim\n[Subsystem: Gfx] "
+     "DebugGfx\n[Subsystem: Gfx] WarningGfx\n"},
+};  // namespace
 
 LoggingTest::LoggingTest() {
   addInstancedTests({&LoggingTest::envVarTest},
@@ -73,8 +85,7 @@ LoggingTest::LoggingTest() {
 void LoggingTest::envVarTest() {
   auto&& data = EnvVarTestData[testCaseInstanceId()];
 
-  LoggingSubsystemTracker::DeleteInstance();
-  LoggingSubsystemTracker::Instance().processEnvString(data.envString);
+  LoggingContext ctx{data.envString};
 
   std::ostringstream out;
   Cr::Utility::Debug debugCapture{&out};
@@ -89,11 +100,7 @@ void LoggingTest::envVarTest() {
   gfx::test::debug("DebugGfx");
   gfx::test::warning("WarningGfx");
 
-  auto result = Cr::Containers::StringView{" "}.join(
-      Cr::Containers::String{out.str()}.splitWithoutEmptyParts('\n'));
-
-  CORRADE_COMPARE(result, data.expected);
-  LoggingSubsystemTracker::DeleteInstance();
+  CORRADE_COMPARE(out.str().data(), data.expected);
 }
 
 }  // namespace
