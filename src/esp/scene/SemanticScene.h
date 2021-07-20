@@ -40,7 +40,7 @@ class SemanticLevel;
 //! levels, regions and objects
 class SemanticScene {
  public:
-  ~SemanticScene() { LOG(INFO) << "Deconstructing SemanticScene"; }
+  ~SemanticScene() { ESP_DEBUG() << "Deconstructing SemanticScene"; }
   //! return axis aligned bounding box of this House
   box3f aabb() const { return bbox_; }
 

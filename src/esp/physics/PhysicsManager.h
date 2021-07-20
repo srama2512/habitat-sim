@@ -335,8 +335,8 @@ class PhysicsManager : public std::enable_shared_from_this<PhysicsManager> {
         resourceManager_.getObjectAttributesManager()->getObjectCopyByHandle(
             attributesHandle);
     if (!attributes) {
-      LOG(ERROR)
-          << "::addObject : Object creation failed due to unknown attributes "
+      ESP_ERROR()
+          << "::addObject : Object creation failed due to unknown attributes"
           << attributesHandle;
       return ID_UNDEFINED;
     }
@@ -365,9 +365,9 @@ class PhysicsManager : public std::enable_shared_from_this<PhysicsManager> {
         resourceManager_.getObjectAttributesManager()->getObjectCopyByID(
             attributesID);
     if (!attributes) {
-      LOG(ERROR) << "::addObject : Object creation failed due to unknown "
-                    "attributes ID "
-                 << attributesID;
+      ESP_ERROR() << "::addObject : Object creation failed due to unknown "
+                     "attributes ID "
+                  << attributesID;
       return ID_UNDEFINED;
     }
     return addObject(attributes, drawables, attachmentNode, lightSetup);
@@ -895,7 +895,7 @@ class PhysicsManager : public std::enable_shared_from_this<PhysicsManager> {
    */
   virtual int createRigidConstraint(
       CORRADE_UNUSED const RigidConstraintSettings& settings) {
-    LOG(ERROR)
+    ESP_ERROR()
         << "createRigidConstraint not implemented in base PhysicsManager";
     return ID_UNDEFINED;
   }
@@ -911,7 +911,7 @@ class PhysicsManager : public std::enable_shared_from_this<PhysicsManager> {
   virtual void updateRigidConstraint(
       CORRADE_UNUSED int constraintId,
       CORRADE_UNUSED const RigidConstraintSettings& settings) {
-    LOG(ERROR)
+    ESP_ERROR()
         << "updateRigidConstraint not implemented in base PhysicsManager.";
   }
 
@@ -923,7 +923,7 @@ class PhysicsManager : public std::enable_shared_from_this<PhysicsManager> {
    * @param constraintId The id of the constraint to remove.
    */
   virtual void removeRigidConstraint(CORRADE_UNUSED int constraintId) {
-    LOG(ERROR)
+    ESP_ERROR()
         << "removeRigidConstraint not implemented in base PhysicsManager.";
   }
 

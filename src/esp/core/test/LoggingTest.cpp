@@ -57,24 +57,24 @@ constexpr const struct {
   const char* expected;
 } EnvVarTestData[]{
     {nullptr,
-     "[Subsystem: Default] DebugDefault\n[Subsystem: Default] WarningDefault\n"
-     "[Subsystem: Sim] DebugSim\n[Subsystem: Sim] WarningSim\n[Subsystem: "
-     "Gfx] "
-     "DebugGfx\n[Subsystem: Gfx] WarningGfx\n"},
+     "[Default] DebugDefault\n[Default] WarningDefault\n"
+     "[Sim] DebugSim\n[Sim] WarningSim\n"
+     "[Gfx] "
+     "DebugGfx\n[Gfx] WarningGfx\n"},
     {"debug",
-     "[Subsystem: Default] DebugDefault\n[Subsystem: Default] WarningDefault\n"
-     "[Subsystem: Sim] DebugSim\n[Subsystem: Sim] WarningSim\n[Subsystem: "
-     "Gfx] "
-     "DebugGfx\n[Subsystem: Gfx] WarningGfx\n"},
+     "[Default] DebugDefault\n[Default] WarningDefault\n"
+     "[Sim] DebugSim\n[Sim] WarningSim\n"
+     "[Gfx] "
+     "DebugGfx\n[Gfx] WarningGfx\n"},
     {"quiet", ""},
     {"error", ""},
     {"quiet:Sim,Gfx=verbose",
-     "[Subsystem: Sim] DebugSim\n[Subsystem: Sim] WarningSim\n[Subsystem: Gfx] "
-     "DebugGfx\n[Subsystem: Gfx] WarningGfx\n"},
+     "[Sim] DebugSim\n[Sim] WarningSim\n[Gfx] "
+     "DebugGfx\n[Gfx] WarningGfx\n"},
     {"warning:Gfx=debug",
-     "[Subsystem: Default] WarningDefault\n"
-     "[Subsystem: Sim] WarningSim\n[Subsystem: Gfx] "
-     "DebugGfx\n[Subsystem: Gfx] WarningGfx\n"},
+     "[Default] WarningDefault\n"
+     "[Sim] WarningSim\n[Gfx] "
+     "DebugGfx\n[Gfx] WarningGfx\n"},
 };  // namespace
 
 LoggingTest::LoggingTest() {

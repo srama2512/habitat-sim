@@ -10,6 +10,7 @@
 #include <Corrade/Containers/Array.h>
 #include <Corrade/Containers/StringView.h>
 #include <Corrade/Utility/Debug.h>
+#include <Corrade/Utility/DebugStl.h>
 #include <Corrade/Utility/String.h>
 
 namespace esp {
@@ -19,20 +20,25 @@ namespace logging {
 // to add an appropriate loggingSubsystem function (see the ADD_SUBSYSTEM_FN
 // helper bellow) and add it to @ref subsystemFromName()
 enum class Subsystem : uint8_t {
+  // This is the catch all subsystem
+  Default,
   gfx,
   scene,
   sim,
   physics,
   nav,
-  // This is the catch all subsystem
-  Default,
+  metadata,
+  geo,
+  io,
+  URDF,
 
   // Must always be last
   NumSubsystems,
 };
 
-constexpr const char* subsystemNames[] = {"Gfx",     "Scene", "Sim",
-                                          "Physics", "Nav",   "Default"};
+constexpr const char* subsystemNames[] = {"Default", "Gfx", "Scene",    "Sim",
+                                          "Physics", "Nav", "Metadata", "Geo",
+                                          "IO",      "URDF"};
 
 Subsystem subsystemFromName(Corrade::Containers::StringView name);
 
@@ -40,6 +46,7 @@ Subsystem subsystemFromName(Corrade::Containers::StringView name);
 }  // namespace esp
 
 // This is the catch all for subsystems without a specialization
+// Using c style namespacing that way logging can work outside our namespace
 inline esp::logging::Subsystem espLoggingSubsystem() {
   return esp::logging::Subsystem::Default;
 }
@@ -58,18 +65,34 @@ ADD_SUBSYSTEM_FN(scene);
 ADD_SUBSYSTEM_FN(sim);
 ADD_SUBSYSTEM_FN(physics);
 ADD_SUBSYSTEM_FN(nav);
+ADD_SUBSYSTEM_FN(metadata);
+ADD_SUBSYSTEM_FN(geo);
+ADD_SUBSYSTEM_FN(io);
+
+namespace esp {
+namespace io {
+namespace URDF {
+inline logging::Subsystem espLoggingSubsystem() {
+  return logging::Subsystem::URDF;
+}
+}  // namespace URDF
+}  // namespace io
+}  // namespace esp
 
 namespace esp {
 namespace logging {
 
 enum class LoggingLevel : uint8_t {
-  // Always first
-  Verbose,
   Debug,
   Warning,
-  // Quiet mode disables debug and warning
-  Quiet,
   Error,
+
+  // Verbose enables debug and higher
+  // Note:  If you add something lower prio than Debug,
+  // Verbose should be set equal to that
+  Verbose = Debug,
+  // Quiet is errors and higher
+  Quiet = Error,
 };
 
 LoggingLevel levelFromName(Corrade::Containers::StringView name);
@@ -121,6 +144,13 @@ class LoggingContext {
    */
   void processEnvString(Corrade::Containers::StringView envString);
 
+  /**
+   * @brief Retrieves the configuration string from the environment variable
+   * and reconfigures levels.  Useful for allowing the environment variable
+   * to be changed after module level initialization.
+   */
+  void reinitializeFromEnv();
+
   LoggingLevel levelFor(Subsystem subsystem) const;
 
   static bool hasCurrent();
@@ -134,7 +164,6 @@ class LoggingContext {
 Corrade::Utility::Debug debugOutputFor(Subsystem subsystem);
 Corrade::Utility::Warning warningOutputFor(Subsystem subsystem);
 Corrade::Utility::Error errorOutputFor(Subsystem subsystem);
-
 }  // namespace logging
 }  // namespace esp
 
@@ -197,8 +226,8 @@ class LogMessageVoidify {
 #define ASSERT(x, ...)                                              \
   do {                                                              \
     if (!(x)) {                                                     \
-      LOG(ERROR) << "Assert failed: " #x << ", " << __FILE__ << ":" \
-                 << __LINE__;                                       \
+      ESP_ERROR() << "Assert failed: " #x << "," << __FILE__ << ":" \
+                  << __LINE__;                                      \
       exit(-1);                                                     \
     }                                                               \
   } while (false)

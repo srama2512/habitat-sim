@@ -17,6 +17,10 @@ using Cr::Containers::Literals::operator""_s;
 namespace esp {
 namespace logging {
 
+static_assert(uint8_t(Subsystem::NumSubsystems) ==
+                  (sizeof(subsystemNames) / sizeof(subsystemNames[0])),
+              "Missing a subsystem name.");
+
 Subsystem subsystemFromName(const Corrade::Containers::StringView name) {
   const Cr::Containers::String lowerCaseName =
       Cr::Utility::String::lowercase(name);
@@ -76,10 +80,8 @@ bool LoggingContext::hasCurrent() {
 }
 
 LoggingContext& LoggingContext::current() {
-  ESP_CHECK(
-      currentLoggingContext,
-      "esp::logging::LoggingContext: No current logging context.  Either "
-      "initialize an instance of the simulator or create a logging context");
+  ESP_CHECK(hasCurrent(),
+            "esp::logging::LoggingContext: No current logging context.");
 
   return *currentLoggingContext;
 }
@@ -116,6 +118,11 @@ void LoggingContext::processEnvString(
   }
 }
 
+void LoggingContext::reinitializeFromEnv() {
+  std::fill(loggingLevels_.begin(), loggingLevels_.end(), DEFAULT_LEVEL);
+  processEnvString(std::getenv(LOGGING_ENV_VAR_NAME));
+}
+
 LoggingLevel LoggingContext::levelFor(Subsystem subsystem) const {
   return loggingLevels_[uint8_t(subsystem)];
 }
@@ -124,8 +131,8 @@ namespace {
 template <class Logger>
 Logger outputForImpl(Subsystem subsystem, LoggingLevel level) {
   if (level >= LoggingContext::current().levelFor(subsystem)) {
-    Logger logger{Logger::output()};
-    logger << "[Subsystem:" << subsystemNames[uint8_t(subsystem)]
+    Logger logger{};
+    logger << "[" << Logger::nospace << subsystemNames[uint8_t(subsystem)]
            << Logger::nospace << "]";
     return logger;
   } else

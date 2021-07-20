@@ -84,7 +84,6 @@ void Simulator::close(const bool destroy) {
   if (destroy || !renderer_->wasBackgroundRendererInitialized()) {
     renderer_ = nullptr;
     context_ = nullptr;
-    loggingContext_ = nullptr;
   }
 
   activeSceneID_ = ID_UNDEFINED;
@@ -96,8 +95,7 @@ void Simulator::close(const bool destroy) {
 }
 
 void Simulator::reconfigure(const SimulatorConfiguration& cfg) {
-  if (!loggingContext_)
-    loggingContext_ = std::make_unique<logging::LoggingContext>();
+  logging::LoggingContext::current().reinitializeFromEnv();
   // set metadata mediator's cfg  upon creation or reconfigure
   if (!metadataMediator_) {
     metadataMediator_ = metadata::MetadataMediator::create(cfg);
@@ -323,14 +321,14 @@ bool Simulator::createSceneInstance(const std::string& activeSceneName) {
   if (config_.overrideSceneLightDefaults) {
     lightSetupKey = config_.sceneLightSetup;
     ESP_DEBUG() << "::createSceneInstance : Using config-specified "
-                   "Light key : -"
+                   "Light key: -"
                 << Mn::Debug::nospace << lightSetupKey << Mn::Debug::nospace
                 << "-";
   } else {
     lightSetupKey = metadataMediator_->getLightSetupFullHandle(
         curSceneInstanceAttributes->getLightingHandle());
     ESP_DEBUG() << "::createSceneInstance : Using scene instance-specified "
-                   "Light key : -"
+                   "Light key: -"
                 << Mn::Debug::nospace << lightSetupKey << Mn::Debug::nospace
                 << "-";
     if (lightSetupKey != NO_LIGHT_KEY) {
@@ -400,8 +398,8 @@ bool Simulator::createSceneInstance(const std::string& activeSceneName) {
       config_.loadSemanticMesh, config_.forceSeparateSemanticSceneGraph);
 
   if (!loadSuccess) {
-    LOG(ERROR) << "::createSceneInstance : Cannot load stage : "
-               << stageAttributesHandle;
+    ESP_ERROR() << "::createSceneInstance : Cannot load stage :"
+                << stageAttributesHandle;
     // Pass the error to the python through pybind11 allowing graceful exit
     throw std::invalid_argument("::createSceneInstance : Cannot load: " +
                                 stageAttributesHandle);
@@ -505,10 +503,10 @@ bool Simulator::instanceObjectsForActiveScene() {
     const std::string objAttrFullHandle =
         metadataMediator_->getObjAttrFullHandle(objInst->getHandle());
     if (objAttrFullHandle == "") {
-      LOG(ERROR) << errMsgTmplt
-                 << "Unable to find objectAttributes whose handle contains "
-                 << objInst->getHandle()
-                 << " as specified in object instance attributes.";
+      ESP_ERROR() << errMsgTmplt
+                  << "Unable to find objectAttributes whose handle contains"
+                  << objInst->getHandle()
+                  << "as specified in object instance attributes.";
       return false;
     }
 
@@ -792,7 +790,7 @@ bool Simulator::recomputeNavMesh(nav::PathFinder& pathfinder,
   }
 
   if (!pathfinder.build(navMeshSettings, *joinedMesh)) {
-    LOG(ERROR) << "Failed to build navmesh";
+    ESP_ERROR() << "Failed to build navmesh";
     return false;
   }
 
@@ -830,8 +828,8 @@ bool Simulator::setNavMeshVisualization(bool visualize) {
     navMeshVisPrimID_ = resourceManager_->loadNavMeshVisualization(
         *pathfinder_, navMeshVisNode_, &drawables);
     if (navMeshVisPrimID_ == ID_UNDEFINED) {
-      LOG(ERROR) << "::toggleNavMeshVisualization : Failed to load "
-                    "navmesh visualization.";
+      ESP_ERROR() << "::toggleNavMeshVisualization : Failed to load "
+                     "navmesh visualization.";
       delete navMeshVisNode_;
     }
   }
@@ -867,9 +865,9 @@ int Simulator::addTrajectoryObject(const std::string& trajVisName,
   bool success = resourceManager_->buildTrajectoryVisualization(
       trajVisName, uniquePts, numSegments, radius, color, smooth, numInterp);
   if (!success) {
-    LOG(ERROR) << "::showTrajectoryVisualization : Failed to create "
-                  "Trajectory visualization mesh for "
-               << trajVisName;
+    ESP_ERROR() << "::showTrajectoryVisualization : Failed to create "
+                   "Trajectory visualization mesh for "
+                << trajVisName;
     return ID_UNDEFINED;
   }
   // 2. create object attributes for the trajectory
@@ -884,9 +882,9 @@ int Simulator::addTrajectoryObject(const std::string& trajVisName,
   auto trajVisID = physicsManager_->addObject(trajVisName, &drawables);
   if (trajVisID == ID_UNDEFINED) {
     // failed to add object - need to delete asset from resourceManager.
-    LOG(ERROR) << "::showTrajectoryVisualization : Failed to create "
-                  "Trajectory visualization object for "
-               << trajVisName;
+    ESP_ERROR() << "::showTrajectoryVisualization : Failed to create "
+                   "Trajectory visualization object for "
+                << trajVisName;
     // TODO : support removing asset by removing from resourceDict_ properly
     // using trajVisName
     return ID_UNDEFINED;
@@ -913,7 +911,7 @@ void Simulator::sampleRandomAgentState(agent::AgentState& agentState) {
     agentState.rotation = rotation.coeffs();
     // TODO: any other AgentState members should be randomized?
   } else {
-    LOG(ERROR) << "No loaded PathFinder, aborting sampleRandomAgentState.";
+    ESP_ERROR() << "No loaded PathFinder, aborting sampleRandomAgentState.";
   }
 }
 
@@ -935,7 +933,7 @@ std::string Simulator::convexHullDecomposition(
     const assets::ResourceManager::VHACDParameters& params,
     const bool renderChd,
     const bool saveChdToObj) {
-  Cr::Utility::Debug() << "VHACD PARAMS RESOLUTION: " << params.m_resolution;
+  ESP_DEBUG() << "VHACD PARAMS RESOLUTION:" << params.m_resolution;
 
   // generate a unique filename
   std::string chdFilename =
