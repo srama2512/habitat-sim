@@ -405,9 +405,9 @@ void BulletArticulatedObject::setJointPositions(
     const std::vector<float>& positions) {
   if (positions.size() != size_t(btMultiBody_->getNumPosVars())) {
     ESP_DEBUG() << "setJointPositions - Position vector size mis-match (input:"
-                << positions.size()
-                << ", expected:" << btMultiBody_->getNumPosVars()
-                << "), aborting.";
+                << Mn::Debug::nospace << positions.size()
+                << Mn::Debug::nospace << ", expected:" << btMultiBody_->getNumPosVars()
+                << Mn::Debug::nospace << "), aborting.";
   }
 
   int posCount = 0;
